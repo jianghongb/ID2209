@@ -1,5 +1,5 @@
 ## ID2209 – Distributed Artificial Intelligence and Intelligent Agents
-# Assignment 1 – Agents & stuff
+# Assignment 1 – GAMA and agents
 
 <p align="center"> Group 16 </p>
 <p align="center"> Hong Jiang & Yayan Li </p>
