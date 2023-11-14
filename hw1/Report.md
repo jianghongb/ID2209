@@ -5,6 +5,7 @@
 <p align="center"> Hong Jiang & Yayan Li </p>
 <p align="center"> 14th Nov 2023 </p>
 
+In this assignment, we were tasked with creating **a Basic Festival with Stores** in GAMA, and implement Task2 when Event1 happened.
 ## Species
 ### Agent A
 ### Agent B
