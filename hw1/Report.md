@@ -29,21 +29,15 @@ Figure 1: A screenshot of the final solution.
 
 
 ## Challenge 1
-<Explain shortly how you went on by implementing the challenging features>
-To complete the first challenge, we added a List variable to AgentA and an Array variable to AgentB.
-The List held information and X and Y while the Array had information about Z...
+> Memory of Agents - Small Brain
+
+To complete the first challenge, we added a variable "brain" which is List of Store to FestivalGuest, when useBrain is true, we will add the target store to the  "brain"  when the list length less than 2 and will get the target store from the  "brain"
 
 
 ## Challenge 2
-<Same as the above, if there are two challenges or more>
-Creative implementation
-<You are free to express yourselves here. Keep it simple, but motivate why you should be awarded a
-creative bonus point for your implementation>
-For our creative solutions, we added a new agent, AgentÞ ( Þ is an Icelandic letter that sounds just like
-the word the without the e. It‘s name is pronounced thodn) that took care of managing voting of agents
-in the system to optimize Task2. Three of such agents were created that could broadcast messages to
-all other agents. We used the Bully Algorithm to select and maintain a leader in our system, making it
-fault tolerant.
+> Removing Bad Behaviour Agents
+
+
 
 ## Creative implementation 
 
