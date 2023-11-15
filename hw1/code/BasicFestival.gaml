@@ -54,7 +54,7 @@ species DrinkStore parent: Store {
 	bool hasDrink <- true;
 
 	aspect default {
-		draw triangle(4) at: location color: #purple;
+		draw triangle(4) at: location color: #blue;
 	}
 
 }
@@ -83,25 +83,26 @@ species InfoCenter parent: Store {
 }
 
 species FestivalGuest skills: [moving] {
-	bool isHungry <- false update: flip(0.5);
-	bool isThirsty <- false update: flip(0.5);
+	float thirst <- rnd(50, 100) * 1.0;
+	float hunger <- rnd(50, 100) * 1.0;
 	int guestId <- rnd(1000, 10000);
 	int statementChangeRate <- 4;
-	float guestSpeed <- 2.0;
+	float guestSpeed <- 1.0;
 	rgb color <- #green;
 	Store targetPoint <- nil;
 
+
 	reflex statementChange {
-		bool getFood <- false;
-		if (targetPoint = nil and (isHungry or isThirsty)) {
+		thirst <- thirst - rnd(statementChangeRate) * 0.1;
+		hunger <- hunger - rnd(statementChangeRate) * 0.1;
+		if (targetPoint = nil and (thirst < 50 or hunger < 50)) {
 			string guestStatement <- name;
-			if (isHungry and isThirsty) {
+			if (thirst < 50 and hunger < 50) {
 				guestStatement <- guestStatement + " feels thirsty and hungry,";
-			} else if (isHungry) {
-				guestStatement <- guestStatement + " feels hungry,";
-				getFood <- true;
-			} else if (isThirsty) {
+			} else if (thirst < 50) {
 				guestStatement <- guestStatement + " feels thirsty,";
+			} else if (hunger < 50) {
+				guestStatement <- guestStatement + " feels hungry,";
 			}
 
 			if (targetPoint = nil) {
@@ -126,20 +127,18 @@ species FestivalGuest skills: [moving] {
 		do goto target: targetPoint.location speed: guestSpeed;
 	}
 
-	reflex enterStore when: targetPoint != nil and targetPoint.location = {50, 50} and location distance_to (targetPoint.location) < distanceCanGetInfo {
-		ask InfoCenter at_distance 2 {
-			string destinationString <- name + " getting ";
-			if (myself.isThirsty) {
+	reflex infoCenterReached when: targetPoint != nil and targetPoint.location = {50, 50} and location distance_to (targetPoint.location) < distanceCanGetInfo {
+		string destinationString <- name + " getting ";
+		ask InfoCenter at_distance distanceCanGetInfo {
+			if (myself.thirst <= myself.hunger) {
 				myself.targetPoint <- drinkLocations[rnd(length(drinkLocations) - 1)];
 				destinationString <- destinationString + "drink at ";
-			}
-
-			if (myself.isHungry) {
+			} else {
 				myself.targetPoint <- foodLocations[rnd(length(foodLocations) - 1)];
 				destinationString <- destinationString + "food at ";
 			}
 
-			write destinationString + myself.targetPoint;
+			write destinationString + myself.targetPoint.name;
 		}
 
 	}
@@ -148,10 +147,10 @@ species FestivalGuest skills: [moving] {
 		ask targetPoint {
 			string replenishString <- myself.name;
 			if (hasFood = true) {
-				myself.isHungry <- false;
+				myself.hunger <- 100.0;
 				replenishString <- replenishString + " ate food at " + name;
 			} else if (hasDrink = true) {
-				myself.isThirsty <- false;
+				myself.thirst <- 100.0;
 				replenishString <- replenishString + " had a drink at " + name;
 			}
 
