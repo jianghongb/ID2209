@@ -7,74 +7,109 @@
 model NewModel
 global 
 {
-	/*
-	 * Configs
-	 */
+
 	int GuestNumber <- 20;
-	//int GuestNumber <- 1;
 	int FoodStoreNumber <- 2;
 	int DrinkStoreNumber <- 2;
 	int infoCenterSize <- 5;
 	point infoCenterLocation <- {50,50};
-	float guestSpeed <- 0.05;
-	// the rate at which guests grow hungry / thirsty
-	// every reflex we reduce hunger / thirst by rnd(0,rate) * 0.1
-	int hungerRate <- 1;
-	//float roboCopSpeed <- 1.8;
-	// Robotcop is a bit faster than guests
-	float roboCopSpeed <- guestSpeed * 1.2;
+	float guestSpeed <- 0.05; 	              // guest move speed
+	int ConsumeRate <- 1;				      // the rate at which guests grow hungry / thirsty
+	float GuardSpeed <- guestSpeed * 1.2;     //Guard should be faster than bad guest
+
 	
 	init
 	{
-		/* Create GuestNumber (defined above) amount of Guests */
-		create Guest number: GuestNumber
-		{
-			
-		}
-		
-				
-		/*
-		 * Number of stores is defined above 
-		 */
-		create FoodStore number: FoodStoreNumber
-		{
-
-		}
-		
-		/*
-		 * Number of stores id defined above 
-		 */
-		create DrinkStore number: DrinkStoreNumber
-		{
-
-		}
-		
-		/*
-		 * location is 50,50 to put the info center in the middle
-		 */
-		create InfoCenter number: 1
-		{
-			location <- infoCenterLocation;
-		}
-			
-		/* Create security */
-		create Security number: 1
-		{
-
-		}
+		create Guest number: GuestNumber;
+		create FoodStore number: FoodStoreNumber;
+		create DrinkStore number: DrinkStoreNumber;
+		create InfoCenter number: 1 {location <- infoCenterLocation;}
+		create Guard number: 1;
 	}
+}
+
+/*
+ * Parent Building
+ * Guests might have a possibility to find a new place,
+ * reserved for further developing
+ */
+species Building
+{
+	bool sellsFood <- false;
+	bool sellsDrink <- false;
 	
 }
 
+species FoodStore parent: Building
+{
+	bool sellsFood <- true;
+	
+	aspect default{
+		draw pyramid(5) at: location color: #brown;}
+}
+
+
+species DrinkStore parent: Building
+{
+	bool sellsDrink <- true;
+	
+	aspect default{
+		draw pyramid(5) at: location color: #yellow;}
+}
+
+/* InfoCenter serves info with the ask function */
+species InfoCenter parent: Building
+{
+	// Get every store within 1000, should be enough	
+	list<FoodStore> foodStoreLocs <- (FoodStore at_distance 1000);
+	list<DrinkStore> drinkStoreLocs <- (DrinkStore at_distance 1000);
+	
+	// We only want to querry locations once
+	bool hasLocations <- false;
+	
+	reflex listStoreLocations when: hasLocations = false
+	{
+		ask foodStoreLocs
+		{
+			write "Food store at:" + location; 
+		}	
+		ask drinkStoreLocs
+		{
+			write "Drink store at:" + location; 
+		}
+		
+		hasLocations <- true;
+	}
+	
+	aspect default
+	{
+		draw cube(5) at: location color: #blue;
+	}
+
+	reflex checkForBadGuest
+	{
+		ask Guest at_distance infoCenterSize
+		{
+			if(self.isBad)
+			{
+				Guest badGuest <- self;
+				ask Guard
+				{
+					if(!(self.targets contains badGuest))
+					{
+						self.targets <+ badGuest;
+						write 'InfoCenter found a bad guest (' + badGuest.name + '), sending RoboCop after it';	
+					}
+				}
+			}
+		}
+	}
+}// InfoCenter end
+
 
 /*
- * Max value for both thirst and hunger is 100
- * Guests enter with a random value for both between 50 and 100
- * 
- * Each guest gets an id number, which is simply a random number between 1000 and 10 000,
- * technically two guests could have the same id, but given the small number of guests that's unlikely
- * 
- * Guests will wander about until they get either thirsty or hungry, at which point they will start heading towards the info center 
+ * Guests wander until they feel either thirsty or hungry
+ * they have a possibility to use brain or go towards info center 
  */
 species Guest skills:[moving]
 {
@@ -110,8 +145,8 @@ species Guest skills:[moving]
 	reflex alwaysThirstyAlwaysHungry
 	{
 		/* Reduce thirst and hunger */
-		thirst <- thirst - rnd(hungerRate)*0.1;
-		hunger <- hunger - rnd(hungerRate)*0.1;
+		thirst <- thirst - rnd(ConsumeRate)*0.1;
+		hunger <- hunger - rnd(ConsumeRate)*0.1;
 		
 		// This is used to decide which store to prefer in case of draw. Default is drink.
 		bool getFood <- false;
@@ -282,116 +317,21 @@ species Guest skills:[moving]
 	
 }// Guest end
 
-/*
- * Parent Building
- * by default buildings do not sell food or drink
- * Unsurprisingly, food and drink stores do.
- * guests will test for this when reaching their target building,
- * guests are foxy beasts and will opportunistically fill whatever parameter they can
- */
-species Building
-{
-	bool sellsFood <- false;
-	bool sellsDrink <- false;
-	
-}
 
-/* InfoCenter serves info with the ask function */
-species InfoCenter parent: Building
-{
-	// Get every store within 1000, should be enough	
-	list<FoodStore> foodStoreLocs <- (FoodStore at_distance 1000);
-	list<DrinkStore> drinkStoreLocs <- (DrinkStore at_distance 1000);
-	
-	// We only want to querry locations once
-	bool hasLocations <- false;
-	
-	reflex listStoreLocations when: hasLocations = false
-	{
-		ask foodStoreLocs
-		{
-			write "Food store at:" + location; 
-		}	
-		ask drinkStoreLocs
-		{
-			write "Drink store at:" + location; 
-		}
-		
-		hasLocations <- true;
-	}
-	
-	aspect default
-	{
-		draw cube(5) at: location color: #blue;
-	}
-
-	reflex checkForBadGuest
-	{
-		ask Guest at_distance infoCenterSize
-		{
-			if(self.isBad)
-			{
-				Guest badGuest <- self;
-				ask Security
-				{
-					if(!(self.targets contains badGuest))
-					{
-						self.targets <+ badGuest;
-						write 'InfoCenter found a bad guest (' + badGuest.name + '), sending RoboCop after it';	
-					}
-				}
-			}
-		}
-	}
-}// InfoCenter end
-
-/* 
- * These stores replenish guests' hunger. The info center keeps a list of food stores.
- */
-species FoodStore parent: Building
-{
-	bool sellsFood <- true;
-	
-	aspect default
-	{
-		draw pyramid(5) at: location color: #green;
-	}
-}
-
-/* 
- * These stores replenish guests' thirst. The info center keeps a list of drink stores.
- */
-species DrinkStore parent: Building
-{
-	bool sellsDrink <- true;
-	
-	aspect default
-	{
-		draw pyramid(5) at: location color: #gold;
-	}
-}
-
-/*
- * This is the bouncer that goes around killing bad agents
- */
-species Security skills:[moving]
+species Guard skills:[moving]
 {
 	list<Guest> targets;
-	aspect default
-	{
+	aspect default{
 		draw cube(5) at: location color: #black;
 	}
 	
 	reflex catchBadGuest when: length(targets) > 0
 	{
-		//this is needed in case the guest dies before robocop catches them
-		if(dead(targets[0]))
-		{
+		if(dead(targets[0])){
 			targets >- first(targets);
 		}
-		else
-		{
-			do goto target:(targets[0].location) speed: roboCopSpeed;
+		else{
+			do goto target:(targets[0].location) speed: GuardSpeed;
 		}
 	}
 	
@@ -404,7 +344,7 @@ species Security skills:[moving]
 		}
 		targets >- first(targets);
 	}
-}//Security end
+}
 
 experiment main type: gui
 {
@@ -418,7 +358,7 @@ experiment main type: gui
 			species DrinkStore;
 			species InfoCenter;
 			
-			species Security;
+			species Guard;
 		}
 	}
 }
