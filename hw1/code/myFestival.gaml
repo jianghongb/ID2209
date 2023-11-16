@@ -9,11 +9,9 @@ global
 {
 
 	int GuestNumber <- 20;
-	int FoodStoreNumber <- 2;
-	int DrinkStoreNumber <- 2;
 	int infoCenterSize <- 5;
 	point infoCenterLocation <- {50,50};
-	float guestSpeed <- 0.05; 	              // guest move speed
+	float guestSpeed <- 0.03; 	              // guest move speed
 	int ConsumeRate <- 1;				      // the rate at which guests grow hungry / thirsty
 	float GuardSpeed <- guestSpeed * 1.2;     //Guard should be faster than bad guest
 
@@ -21,8 +19,10 @@ global
 	init
 	{
 		create Guest number: GuestNumber;
-		create FoodStore number: FoodStoreNumber;
-		create DrinkStore number: DrinkStoreNumber;
+		create FoodStore number: 1{location <-{20,20};}
+		create FoodStore number: 1{location <-{20,80};}
+		create DrinkStore number: 1{location <-{70,30};}
+		create DrinkStore number: 1{location <-{30,70};}
 		create InfoCenter number: 1 {location <- infoCenterLocation;}
 		create Guard number: 1;
 	}
@@ -61,50 +61,28 @@ species DrinkStore parent: Building
 species InfoCenter parent: Building
 {
 	// Get every store within 1000, should be enough	
-	list<FoodStore> foodStoreLocs <- (FoodStore at_distance 1000);
-	list<DrinkStore> drinkStoreLocs <- (DrinkStore at_distance 1000);
+	list<FoodStore> foodStoreInfo <- (FoodStore at_distance 1000);
+	list<DrinkStore> drinkStoreInfo <- (DrinkStore at_distance 1000);
 	
-	// We only want to querry locations once
-	bool hasLocations <- false;
-	
-	reflex listStoreLocations when: hasLocations = false
-	{
-		ask foodStoreLocs
-		{
-			write "Food store at:" + location; 
-		}	
-		ask drinkStoreLocs
-		{
-			write "Drink store at:" + location; 
-		}
-		
-		hasLocations <- true;
-	}
-	
-	aspect default
-	{
+	aspect default{
 		draw cube(5) at: location color: #blue;
 	}
-
-	reflex checkForBadGuest
-	{
-		ask Guest at_distance infoCenterSize
-		{
-			if(self.isBad)
-			{
+		
+	reflex checkForBadGuest{
+		ask Guest at_distance infoCenterSize{
+			if(self.isBad){
 				Guest badGuest <- self;
-				ask Guard
-				{
-					if(!(self.targets contains badGuest))
-					{
+				ask Guard{
+					if(!(self.targets contains badGuest)){
 						self.targets <+ badGuest;
 						write 'InfoCenter found a bad guest (' + badGuest.name + '), sending RoboCop after it';	
 					}
 				}
 			}
+
 		}
 	}
-}// InfoCenter end
+}
 
 
 /*
@@ -121,9 +99,6 @@ species Guest skills:[moving]
 	bool isBad <- flip(0.2);
 	rgb color <- #red;
 
-		
-	bool isConscious <- true;
-	
 	list<Building> guestBrain;
 	
 	/* Default target to move towards */
@@ -169,7 +144,7 @@ species Guest skills:[moving]
 		 * 
 		 * Only conscious agents will react to their thirst/hunger 
 		 */
-		if(target = nil and (thirst < 50 or hunger < 50) and isConscious)
+		if(target = nil and (thirst < 50 or hunger < 50))
 		{	
 			string destinationMessage <- name; 
 
@@ -236,7 +211,7 @@ species Guest skills:[moving]
 	 * Agent's default behavior when target not set and they are conscious
 	 * TODO: Do something more exciting here maybe
 	 */
-	reflex beIdle when: target = nil and isConscious
+	reflex beIdle when: target = nil
 	{
 		do wander;
 	}
@@ -268,12 +243,12 @@ species Guest skills:[moving]
 		{
 			if(myself.thirst <= myself.hunger)
 			{
-				myself.target <- drinkStoreLocs[rnd(length(drinkStoreLocs)-1)];
+				myself.target <- drinkStoreInfo[rnd(length(drinkStoreInfo)-1)];
 				destinationString <- destinationString + "drink at ";
 			}
 			else
 			{
-				myself.target <- foodStoreLocs[rnd(length(foodStoreLocs)-1)];
+				myself.target <- foodStoreInfo[rnd(length(foodStoreInfo)-1)];
 				destinationString <- destinationString + "food at ";
 			}
 			
