@@ -45,8 +45,7 @@ Figure 1: A screenshot of the final solution.
 To complete the first challenge, we introduced List structures in FestivalGuest and InformationCenter agents, respectively. These structures efficiently handled the storage and retrieval of coordinates, streamlining the agent's decision-making processes.
 
 ## Challenge 2
-In the second challenge, Guard agents wandering in the festival, waiting for certain triggers and maintaining a safe environment. 
-
+In the second challenge, Guard agents are waiting in the festival, waiting for certain triggers(Information Center report a Badguest) and maintaining a safe environment. 
 
 ### Discussion / Conclusion
 Creating Agent Stores was no problem, because its attribute is simple and no actions. But Agent InformationCenter concerned more complex setting, such as recording the distance to agent Stores. Overall, we got familiar with GAMA platform and learnt the basic usage of GAMA.
