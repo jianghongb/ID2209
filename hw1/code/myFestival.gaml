@@ -19,10 +19,10 @@ global
 	init
 	{
 		create Guest number: GuestNumber;
-		create FoodStore number: 1{location <-{20,20};}
+		create FoodStore number: 1{location <-{80,20};}
 		create FoodStore number: 1{location <-{20,80};}
-		create DrinkStore number: 1{location <-{70,30};}
-		create DrinkStore number: 1{location <-{30,70};}
+		create DrinkStore number: 1{location <-{30,30};}
+		create DrinkStore number: 1{location <-{70,70};}
 		create InfoCenter number: 1 {location <- infoCenterLocation;}
 		create Guard number: 1;
 	}
@@ -94,9 +94,9 @@ species Guest skills:[moving]
 	float thirst <- rnd(50)+50.0;
 	float hunger <- rnd(50)+50.0;
 	int guestId <- rnd(1000,10000);
-
+	float distance <- 0.0;
 	// Bad apples are removed by robocop and are darker in color
-	bool isBad <- flip(0.2);
+	bool isBad <- flip(0.3);
 	rgb color <- #red;
 
 	list<Building> guestBrain;
@@ -113,37 +113,15 @@ species Guest skills:[moving]
 		draw sphere(2) at: location color: color;
 	}
 	
-	/* 
-	 * Reduce thirst and hunger with a random value between 0 and 0.5
-	 * Once agent's thirst or hunger reaches below 50, they will head towards info/Store
-	 */
-	reflex alwaysThirstyAlwaysHungry
+
+	reflex ThirstyHungryState
 	{
 		/* Reduce thirst and hunger */
 		thirst <- thirst - rnd(ConsumeRate)*0.1;
 		hunger <- hunger - rnd(ConsumeRate)*0.1;
 		
-		// This is used to decide which store to prefer in case of draw. Default is drink.
 		bool getFood <- false;
 		
-		/* 
-		 * If agent has no target and either thirst or hunger is less than 50
-		 * then either head to info center, or directly to store
-		 * 
-		 * Once agent visits info center,
-		 * the store they're given will be added to guestBrain,
-		 * which is a list of stores.
-		 * 
-		 * The next time the agent is thirsty / hungry,
-		 * agent then has 50% chance of either drawing an appropriate store from memory,
-		 * or heading to info center as usual.
-		 * 
-		 * Agents can hold two stores in memory
-		 * (typically these will be 1 drink and 1 food due to how the agents' grow thirsty/hungry),
-		 * and will check if the stores in their memory hace the thing they want (food/drink)
-		 * 
-		 * Only conscious agents will react to their thirst/hunger 
-		 */
 		if(target = nil and (thirst < 50 or hunger < 50))
 		{	
 			string destinationMessage <- name; 
@@ -168,7 +146,7 @@ species Guest skills:[moving]
 			}
 			
 			// Guest has 50% chance of using brain or asking from infocenter
-			bool useBrain <- flip(0.5);
+			bool useBrain <- flip(0.7);
 			
 			// Only use brain if the guest has locations saved in brain
 			if(length(guestBrain) > 0 and useBrain = true)
@@ -218,24 +196,15 @@ species Guest skills:[moving]
 	
 	/* 
 	 * When agent has target, move towards target
-	 * note: unconscious guests can still move, just to enable them moving to the hospital
 	 */
 	reflex moveToTarget when: target != nil
 	{
 		do goto target:target.location speed: guestSpeed;
+		  	distance <- distance+length(goto);
+			write("Distance: "+ distance);	
 	}
 	
-	/* 
-	 * Guest arrives to info center
-	 * It is assumed the guests will only head to the info center when either thirsty or hungry
-	 * 
-	 * The guests will prioritize the attribute that is lower for them,
-	 * if tied then thirst goes first.
-	 * This might be different than the reason they decided to head to the info center originally.
-	 * 
-	 * If the guest's brain has space, it will add the store's information to its brain
-	 * This could be the same store it already knows, but the guests are not very smart
-	 */
+
 	reflex infoCenterReached when: target != nil and target.location = infoCenterLocation and location distance_to(target.location) < infoCenterSize
 	{
 		string destinationString <- name  + " getting "; 
@@ -262,12 +231,7 @@ species Guest skills:[moving]
 		}
 	}
 	
-	/*
-	 * When the agent reaches a building, it asks what does the store replenish
-	 * Guests are foxy, opportunistic beasts and will attempt to refill their parameters at every destination
-	 * Yes, guests will even try to eat at the info center
-	 * Such ravenous guests
-	 */
+
 	reflex isThisAStore when: target != nil and location distance_to(target.location) < 2
 	{
 		ask target
@@ -290,7 +254,7 @@ species Guest skills:[moving]
 		target <- nil;
 	}
 	
-}// Guest end
+}
 
 
 species Guard skills:[moving]
