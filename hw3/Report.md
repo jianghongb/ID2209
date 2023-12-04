@@ -1,5 +1,5 @@
 ## ID2209 – Distributed Artificial Intelligence and Intelligent Agents
-# Assignment 2 – Negotiation and Communication (FIPA)
+# Assignment 3 – Coordination and Utility
 
 <p align="center"> Group 16 </p>
 <p align="center"> Hong Jiang & Yayan Li </p>
