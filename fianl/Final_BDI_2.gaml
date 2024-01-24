@@ -158,7 +158,7 @@ species guest skills:[moving] control:simple_bdi {
     plan working intention: need_work{
 		do goto target:{9000,9000} speed: speed;
 		do wander speed:speed/4;
-        consumption <- consumption - rnd(10,20);
+        consumption <- consumption - rnd(1,5);
         task <- task - rnd(0,10);
         if consumption < 30{
         	do add_subintention(get_current_intention(),want_music, true);
@@ -249,18 +249,22 @@ species guest skills:[moving] control:simple_bdi {
 	    do goto target: {9000,9000} ;
 	    write self.name+": I am full. I need to go on working.";
 	    if (location = {9000,9000})  {
-	        do remove_belief(watch_show);
-	        do remove_intention(cool_down, true);
-	        consumption <- consumption - rnd(30,50);
-	        
+//	        do remove_belief(watch_show);
+//	        do remove_intention(cool_down, true);
+	        consumption <- consumption - rnd(1,5);	        
 	        if (has_emotion(generous)) { 
                 write self.name + " want to eat together with his new friend!";
                 do add_desire(predicate:share_lager, strength: 5.0);
-            }
-	        
-	        do add_desire(want_music);
+            }	        
+	        do add_desire(need_work);
 	    }
 		do wander speed:speed/4;
+		if consumption < 30{
+	        do remove_belief(watch_show);
+	        do remove_intention(cool_down, true);
+	        do remove_intention(need_work);
+	        do add_desire(want_music);			
+		}
     }
     plan drink_with_friend intention:share_lager {
      	
@@ -270,6 +274,7 @@ species guest skills:[moving] control:simple_bdi {
      	}
      	do remove_intention(share_lager, true);
     }
+    
     plan want_exit intention:want_exit {
     	target <- {0,0,0};
     	do goto target: {0,0,0};
@@ -278,7 +283,7 @@ species guest skills:[moving] control:simple_bdi {
 
 species Workplace{
 	aspect default {
-        draw triangle(2000) color: #black;
+        draw triangle(2000) color: #grey;
     }	
 }
 
