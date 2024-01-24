@@ -51,7 +51,7 @@ Sometimes, visitors want to take a rest and stay in a calm mood at 0.
 We set Agent Visitors three different attributes and five different types. Visitors communicate with others with FIPA protocol and send messages with their attributes and types. By identifying different places, different types of visitors and different places, visitors change their moods and behaviors which is show by two charts. A serial chart shows the moods number of every visitor each time. A pie chart counts the sum of conflict and peace. When politician refuses to answer questions, conflict counts for one. The same goes for peace counting when politician is willing to answer questions.s
 
 ## Results
-![](result.png)
+![Alt text](image.png)
 
 According to the log information, it tells us "visitor2:I am a chillPerson I am at a bar. It is too noisy, I am unhappy." Then we can view the serial chart on x=2 axis, the moods number equals to -5 representing visitor2 is unhappy now. And others moods numbers are presenting visitors' moods accordingly. The pie chart below shows the sum of the conflict and peace between politicians and journalists.
 
@@ -61,3 +61,28 @@ According to the log information, it tells us "visitor2:I am a chillPerson I am 
 All agents have some sort of moods value, ranging from bad (negative number) to good (positive number) and 0 represents peaceful mood. By changing behaviour of agents and moving agents to different places, the moods change accroding to the rules we set for them.
 
 
+### Challenge 1
+
+## Species
+### Guest
+As the BDI architecture provides agents with three types of behavior structures: Perception, Rule and Plan, we implemented guest with 
+perceive: view distance to Foodstore and build up social links with other agents
+rule: check store location, check show to be happy and watch show to cool down 
+plan: working, wander, check the food store location and show , choose closed stage and watching show and etc.
+
+### Foodstore
+guest come here for food and gain energy for consumption. 
+
+### Workplace
+guest come here for working and consuming the energy which got from Foodstore. 
+
+### Bar
+guest come here for become happy 
+
+### Result 
+![Alt text](image-1.png)
+
+### Discussion / Conclusion
+
+We have implemented the socialize statement with a liking value that depends on the local number **fav** of the agents: which is also the largest number of people in FoodStore.
+Add local storage as a memory to keep the closest sotrage position.
